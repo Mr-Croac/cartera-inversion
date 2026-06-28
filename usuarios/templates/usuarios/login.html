@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar sesión</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; max-width: 400px; }
+        input { display: block; width: 100%; padding: 8px; margin: 8px 0; }
+        button { padding: 10px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔑 Iniciar sesión</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Entrar</button>
+    </form>
+
+    <p>¿No tienes cuenta? <a href="/usuarios/registro/">Regístrate</a></p>
+</body>
+</html>

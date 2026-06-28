@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cartera</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --fondo: #f6f8fb;
+            --tarjeta: #ffffff;
+            --tinta: #0f1729;
+            --tinta-suave: #5b6577;
+            --acento: #4f46e5;
+            --acento-claro: #eef2ff;
+            --borde: #e6e9f0;
+            --verde: #0ea968;
+            --verde-fondo: #e7f7ef;
+            --rojo: #e02d52;
+            --rojo-fondo: #fdeaef;
+            --ambar-fondo: #fef6e0;
+            --ambar-borde: #f0c14b;
+            --sombra: 0 1px 3px rgba(15,23,41,0.06), 0 8px 24px rgba(15,23,41,0.05);
+            --sombra-hover: 0 4px 12px rgba(79,70,229,0.12), 0 12px 32px rgba(15,23,41,0.10);
+          }
+          body.oscuro {
+          --fondo: #0f1422;
+          --tarjeta: #1a2133;
+          --tinta: #e8ecf4;
+          --tinta-suave: #94a0b8;
+          --acento: #6366f1;
+          --acento-claro: #232b42;
+          --borde: #2a3349;
+          --verde: #2dd4a0;
+          --verde-fondo: #16302a;
+          --rojo: #f87194;
+          --rojo-fondo: #331620;
+          --ambar-fondo: #2e2818;
+          --ambar-borde: #7a6320;
+          --sombra: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+          --sombra-hover: 0 4px 12px rgba(99,102,241,0.2), 0 12px 32px rgba(0,0,0,0.35);
+         }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+            margin: 0; padding: 2rem 1.5rem;
+            background: var(--fondo);
+            color: var(--tinta);
+            max-width: 1100px; margin-inline: auto;
+            -webkit-font-smoothing: antialiased;
+        }
+        .mono { font-variant-numeric: tabular-nums;
+                font-family: "SF Mono", "Roboto Mono", ui-monospace, monospace; }
+        .barra {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--tarjeta); padding: 14px 20px;
+            border-radius: 16px; box-shadow: var(--sombra);
+            margin-bottom: 18px; border: 1px solid var(--borde);
+        }
+        .marca { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+        .marca .punto { width: 9px; height: 9px; border-radius: 50%; background: var(--acento);
+                        box-shadow: 0 0 0 4px var(--acento-claro); animation: latido 2.4s ease-in-out infinite; }
+        @keyframes latido { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .7; } }
+        .barra a { color: var(--acento); text-decoration: none; font-weight: 600; font-size: 14px; transition: opacity .15s; }
+        .barra a:hover { opacity: .65; }
+        .usuario-chip { font-size: 14px; color: var(--tinta-suave); }
+        .usuario-chip strong { color: var(--tinta); }
+        .pestanas { display: flex; gap: 4px; margin-bottom: 22px; background: var(--tarjeta);
+                    padding: 6px; border-radius: 14px; box-shadow: var(--sombra);
+                    border: 1px solid var(--borde); width: fit-content; }
+        .pestana { padding: 9px 20px; cursor: pointer; border: none; background: none;
+                   font-size: 14px; font-weight: 600; color: var(--tinta-suave);
+                   border-radius: 9px; transition: all .2s cubic-bezier(.4,0,.2,1); font-family: inherit; }
+        .pestana:hover { color: var(--tinta); background: var(--fondo); }
+        .pestana.activa { background: var(--acento); color: white; box-shadow: 0 2px 8px rgba(79,70,229,.3); }
+        .seccion { display: none; }
+        .seccion.activa { display: block; animation: aparecer .35s cubic-bezier(.4,0,.2,1); }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .caja {
+            background: var(--tarjeta); padding: 22px; border-radius: 16px;
+            box-shadow: var(--sombra); border: 1px solid var(--borde); margin-bottom: 18px;
+            transition: box-shadow .25s, transform .25s;
+        }
+        .caja:hover { box-shadow: var(--sombra-hover); transform: translateY(-2px); }
+        .caja h2 { margin: 0 0 16px; font-size: 16px; letter-spacing: -0.01em; }
+        label { font-size: 13px; font-weight: 600; color: var(--tinta-suave); }
+        input[type=text], input[type=number], select {
+            padding: 10px 12px; margin: 6px 0; border: 1px solid var(--borde);
+            border-radius: 10px; font-size: 14px; font-family: inherit;
+            background: var(--fondo); transition: border-color .15s, box-shadow .15s; outline: none;
+        }
+        input[type=text]:focus, input[type=number]:focus, select:focus {
+            border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-claro); background: white;
+        }
+        input[type=text] { width: 100%; max-width: 420px; }
+        button.accion {
+            padding: 10px 18px; cursor: pointer; border: none; border-radius: 10px;
+            background: var(--acento); color: white; font-weight: 600; font-size: 14px;
+            font-family: inherit; transition: transform .12s, box-shadow .2s, background .15s;
+        }
+        button.accion:hover { background: #4338ca; box-shadow: 0 4px 14px rgba(79,70,229,.35); transform: translateY(-1px); }
+        button.accion:active { transform: translateY(0); }
+        .buscador-wrap { position: relative; max-width: 420px; }
+        #sugerencias, #sugerencias_compra, #sugerencias_venta, #sugerencias_alerta {
+            border: 1px solid var(--borde); border-radius: 12px; background: white;
+            box-shadow: var(--sombra-hover); display: none; position: absolute;
+            width: 100%; z-index: 50; overflow: hidden; margin-top: 4px;
+        }
+        #sugerencias div, #sugerencias_compra div, #sugerencias_venta div, #sugerencias_alerta div {
+            padding: 10px 14px; cursor: pointer; font-size: 14px; transition: background .12s;
+            border-bottom: 1px solid var(--borde);
+        }
+        #sugerencias div:last-child { border-bottom: none; }
+        #sugerencias div:hover, #sugerencias_compra div:hover,
+        #sugerencias_venta div:hover, #sugerencias_alerta div:hover { background: var(--acento-claro); }
+        #flotante {
+            position: fixed; display: none; z-index: 200; background: white;
+            border: 1px solid var(--borde); border-radius: 14px; box-shadow: var(--sombra-hover);
+            padding: 14px; width: 240px; pointer-events: none;
+            animation: aparecer .18s ease;
+        }
+        #flotante .f-ticker { font-weight: 700; font-size: 15px; }
+        #flotante .f-precio { font-size: 22px; font-weight: 700; margin: 2px 0 8px; }
+        #flotante .f-cargando { color: var(--tinta-suave); font-size: 13px; }
+        .etiqueta {
+            display: inline-flex; align-items: center; gap: 6px; background: var(--acento-claro);
+            color: var(--acento); padding: 6px 12px; border-radius: 20px; margin: 4px 4px 0 0;
+            font-size: 13px; font-weight: 600; transition: transform .15s;
+        }
+        .etiqueta:hover { transform: scale(1.05); }
+        .etiqueta .tk { cursor: pointer; }
+        .etiqueta button { border: none; background: none; cursor: pointer; color: var(--acento);
+                           font-size: 15px; line-height: 1; padding: 0; opacity: .6; transition: opacity .15s; }
+        .etiqueta button:hover { opacity: 1; }
+        table { border-collapse: separate; border-spacing: 0; margin-top: 8px; width: 100%;
+                background: var(--tarjeta); border-radius: 14px; overflow: hidden;
+                box-shadow: var(--sombra); border: 1px solid var(--borde); }
+        th, td { padding: 12px 14px; text-align: center; font-size: 14px; border-bottom: 1px solid var(--borde); }
+        th { background: var(--fondo); font-weight: 600; color: var(--tinta-suave);
+             font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr { transition: background .15s; }
+        tbody tr:hover { background: var(--acento-claro); }
+        .verde { color: var(--verde); font-weight: 700; }
+        .rojo  { color: var(--rojo);  font-weight: 700; }
+        .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .pill.compra { background: var(--verde-fondo); color: var(--verde); }
+        .pill.venta  { background: var(--rojo-fondo);  color: var(--rojo); }
+        .btn-descargar { display: inline-flex; align-items: center; gap: 6px; background: var(--verde);
+                         color: white; padding: 9px 16px; border-radius: 10px; text-decoration: none;
+                         font-weight: 600; font-size: 14px; margin: 4px 0 12px; transition: transform .12s, box-shadow .2s; }
+        .btn-descargar:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(14,169,104,.35); }
+        .aviso-alerta { background: var(--ambar-fondo); border: 1px solid var(--ambar-borde);
+                        padding: 14px 16px; border-radius: 12px; margin: 8px 0; font-size: 14px;
+                        animation: aparecer .35s ease; }
+        .resultado-calc { margin: 12px 0; padding: 14px; background: var(--acento-claro);
+                          border-radius: 12px; font-size: 14px; display: none; }
+        .seccion-titulo { font-size: 13px; font-weight: 700; color: var(--tinta-suave);
+                          text-transform: uppercase; letter-spacing: .05em; margin: 8px 0; }
+        small { color: var(--tinta-suave); }
+        hr { border: none; border-top: 1px solid var(--borde); margin: 20px 0; }
+        .grafica-wrap { background: var(--tarjeta); border-radius: 16px; padding: 20px;
+                        box-shadow: var(--sombra); border: 1px solid var(--borde); margin-top: 16px; display: none; }
+        .grafica-wrap.visible { display: block; animation: aparecer .35s ease; }
+        .saldo-num { font-size: 28px; font-weight: 700; margin: 0 0 12px; }
+        .btn-periodo { padding: 6px 14px; border: 1px solid var(--borde); background: var(--fondo);
+               border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+               color: var(--tinta-suave); font-family: inherit; transition: all .15s; }
+              .btn-periodo:hover { border-color: var(--acento); color: var(--acento); }
+              .btn-periodo.activa { background: var(--acento); color: white; border-color: var(--acento); }    
+    </style>
+</head>
+<body>
+
+    {% if messages %}
+    <div style="position:fixed; top:20px; right:20px; z-index:300;">
+        {% for message in messages %}
+        <div style="background:white; border-left:4px solid {% if message.tags == 'error' %}var(--rojo){% else %}var(--verde){% endif %};
+                    box-shadow:var(--sombra-hover); padding:14px 18px; border-radius:10px; margin-bottom:10px;
+                    font-size:14px; min-width:260px; animation:aparecer .3s ease;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div id="flotante">
+        <div class="f-ticker mono" id="f_ticker"></div>
+        <div class="f-precio mono" id="f_precio"></div>
+        <canvas id="f_spark" width="210" height="50"></canvas>
+        <div class="f-cargando" id="f_cargando">Cargando...</div>
+    </div>
+
+    <div class="barra">
+        <div class="marca"><span class="punto"></span> Mi Cartera</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+    <button onclick="cambiarTema()" id="btn_tema" style="background:none;border:1px solid var(--borde);
+            border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;">🌙</button>
+    <div>
+        {% if user.is_authenticated %}
+            <span class="usuario-chip">Hola, <strong>{{ user.username }}</strong></span>
+            &nbsp;&nbsp;<a href="/usuarios/logout/">Cerrar sesion</a>
+        {% else %}
+            <a href="/usuarios/login/">Iniciar sesion</a>
+            &nbsp;&nbsp;<a href="/usuarios/registro/">Registrarse</a>
+        {% endif %}
+    </div>
+</div>
+    </div>
+
+   <div class="pestanas">
+    <button class="pestana activa" onclick="cambiarPestana('precios', this)">Precios</button>
+    {% if user.is_authenticated %}
+    <button class="pestana" onclick="cambiarPestana('cartera', this)">Mi Cartera</button>
+    <button class="pestana" onclick="cambiarPestana('compras', this)">Movimientos</button>
+    <button class="pestana" onclick="cambiarPestana('alertas', this)">Alertas</button>
+    {% endif %}
+</div>
+
+    <!-- PRECIOS -->
+    <div id="precios" class="seccion activa">
+        <div class="caja">
+            <h2>Buscar mercado</h2>
+            <label>Empresa o activo</label>
+            <div class="buscador-wrap">
+                <input type="text" id="buscador" placeholder="Apple, Tesla, Bitcoin...">
+                <div id="sugerencias"></div>
+            </div>
+            <p class="seccion-titulo">Seleccionados <small style="text-transform:none;font-weight:400;">— clic para ver su grafica</small></p>
+            <div id="seleccionados"></div>
+            <form method="get" id="formulario">
+                <input type="hidden" name="tickers" id="campo_tickers" value="{{ texto_tickers }}">
+                <p class="seccion-titulo">Columnas</p>
+                {% for clave, info in columnas_disponibles.items %}
+                    <label style="margin-right:14px;font-weight:400;">
+                        <input type="checkbox" name="columnas" value="{{ clave }}" {% if clave in seleccionadas %}checked{% endif %}>
+                        {{ info.0 }}
+                    </label>
+                {% endfor %}
+                <br><br>
+                <button type="submit" class="accion">Buscar precios</button>
+            </form>
+        </div>
+
+        <div class="grafica-wrap" id="grafica_wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <h2 id="titulo_grafica" style="margin:0;"></h2>
+        <div id="botones_periodo" style="display:flex;gap:4px;">
+            <button type="button" class="btn-periodo" data-periodo="1mo">1M</button>
+            <button type="button" class="btn-periodo" data-periodo="6mo">6M</button>
+            <button type="button" class="btn-periodo activa" data-periodo="1y">1A</button>
+            <button type="button" class="btn-periodo" data-periodo="5y">5A</button>
+            <button type="button" class="btn-periodo" data-periodo="max">Máx</button>
+        </div>
+    </div>
+    <canvas id="grafica" width="900" height="320" style="margin-top:16px;"></canvas>
+</div>
+      <div class="grafica-wrap" id="rsi_wrap">
+    <h2 style="margin:0 0 10px;">RSI (14)</h2>
+    <canvas id="grafica_rsi" width="900" height="160"></canvas>
+</div>
+<div class="grafica-wrap" id="macd_wrap">
+    <h2 style="margin:0 0 10px;">MACD (12, 26, 9)</h2>
+    <canvas id="grafica_macd" width="900" height="180"></canvas>
+</div>
+        <table>
+            <thead>
+            <tr>
+                <th>Ticker</th><th>Nombre</th>
+                {% for cabecera in cabeceras %}<th>{{ cabecera }}</th>{% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for accion in acciones %}
+            <tr>
+                <td class="mono"><strong>{{ accion.ticker }}</strong></td>
+                <td>{{ accion.nombre }}</td>
+                {% for dato in accion.datos %}<td class="mono">{{ dato }}</td>{% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="caja" id="caja_noticias" style="display:none;">
+    <h2>📰 Noticias</h2>
+    <div id="lista_noticias"></div>
+     </div>
+    </div>
+    
+    <!-- MI CARTERA -->
+{% if user.is_authenticated %}
+<div id="cartera" class="seccion">
+    <!-- Resumen global -->
+    <div class="caja">
+        <h2>📊 Resumen de mi cartera</h2>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div>
+                <div class="seccion-titulo">Invertido</div>
+                <div class="mono" style="font-size:24px;font-weight:700;">{{ resumen_cartera.total_invertido }} €</div>
+            </div>
+            <div>
+                <div class="seccion-titulo">Valor actual</div>
+                <div class="mono" style="font-size:24px;font-weight:700;">{{ resumen_cartera.total_actual }} €</div>
+            </div>
+            <div>
+                <div class="seccion-titulo">Ganancia/Pérdida</div>
+                <div class="mono {% if resumen_cartera.ganancia_total >= 0 %}verde{% else %}rojo{% endif %}" style="font-size:24px;font-weight:700;">
+                    {{ resumen_cartera.ganancia_total }} €
+                </div>
+            </div>
+            <div>
+                <div class="seccion-titulo">Rentabilidad</div>
+                <div class="mono {% if resumen_cartera.rentabilidad_total >= 0 %}verde{% else %}rojo{% endif %}" style="font-size:24px;font-weight:700;">
+                    {{ resumen_cartera.rentabilidad_total }} %
+                </div>
+            </div>
+        </div>
+    </div>
+
+ <div class="caja">
+    <h2>🥧 Distribución de la cartera</h2>
+    <canvas id="grafica_tarta" width="400" height="400" style="max-width:400px;margin:0 auto;display:block;"></canvas>
+  </div>
+
+    <!-- Posiciones -->
+    <div class="caja">
+        <h2>Mis posiciones</h2>
+        {% if posiciones %}
+        <table>
+            <thead>
+            <tr>
+                <th>Ticker</th><th>Acciones</th><th>Precio medio</th><th>Precio actual</th>
+                <th>Invertido</th><th>Valor actual</th><th>Ganancia</th><th>Rentab.</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in posiciones %}
+            <tr>
+                <td class="mono"><strong>{{ p.ticker }}</strong></td>
+                <td class="mono">{{ p.acciones }}</td>
+                <td class="mono">{{ p.precio_medio }} €</td>
+                <td class="mono">{{ p.precio_actual }} €</td>
+                <td class="mono">{{ p.invertido }} €</td>
+                <td class="mono">{{ p.valor_actual }} €</td>
+                <td class="mono {% if p.ganancia >= 0 %}verde{% else %}rojo{% endif %}">{{ p.ganancia }} €</td>
+                <td class="mono {% if p.rentabilidad >= 0 %}verde{% else %}rojo{% endif %}">{{ p.rentabilidad }} %</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color:var(--tinta-suave);">Todavía no tienes posiciones. Compra algo en la pestaña Movimientos.</p>
+        {% endif %}
+    </div>
+  </div>
+ {% endif %}
+
+    <!-- MOVIMIENTOS -->
+    {% if user.is_authenticated %}
+    <div id="compras" class="seccion">
+        <div class="caja">
+            <h2>💰 Mi saldo</h2>
+            <p class="saldo-num mono">{{ saldo }} €</p>
+            <form method="post" action="/ingresar/" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                {% csrf_token %}
+                <input type="number" step="any" name="cantidad" placeholder="Cantidad a ingresar" required>
+                <button type="submit" class="accion">Ingresar fondos</button>
+            </form>
+        </div>
+
+        <div class="caja">
+            <h2>Comprar</h2>
+            <form method="post" action="/compras/">
+                {% csrf_token %}
+                <label>Empresa</label>
+                <div class="buscador-wrap">
+                    <input type="text" id="buscador_compra" placeholder="Apple, Tesla...">
+                    <div id="sugerencias_compra"></div>
+                </div>
+                <p>Seleccionado: <strong id="ticker_elegido" class="mono">ninguno</strong> <span id="precio_info" class="mono"></span></p>
+                <input type="hidden" name="ticker" id="campo_ticker_compra" required>
+                <label>Dinero a invertir (EUR)</label><br>
+                <input type="number" step="any" id="dinero_invertir" placeholder="1000">
+                <div id="resultado_calculo" class="resultado-calc"></div>
+                <input type="hidden" name="cantidad" id="campo_cantidad">
+                <input type="hidden" name="precio" id="campo_precio">
+                <br>
+                <button type="button" class="accion" onclick="calcularAcciones()">Calcular</button>
+                <button type="submit" class="accion" id="btn_comprar" style="display:none;">Confirmar compra</button>
+            </form>
+        </div>
+
+        <div class="caja">
+            <h2>Vender</h2>
+            <form method="post" action="/vender/">
+                {% csrf_token %}
+                <label>Empresa</label>
+                <div class="buscador-wrap">
+                    <input type="text" id="buscador_venta" placeholder="Apple, Tesla...">
+                    <div id="sugerencias_venta"></div>
+                </div>
+                <p>Seleccionado: <strong id="ticker_venta" class="mono">ninguno</strong> <span id="precio_venta_info" class="mono"></span></p>
+                <input type="hidden" name="ticker" id="campo_ticker_venta" required>
+                <label>Acciones a vender</label><br>
+                <input type="number" step="any" name="cantidad" id="cantidad_venta" placeholder="2" required>
+                <input type="hidden" name="precio" id="campo_precio_venta">
+                <br>
+                <button type="submit" class="accion">Confirmar venta</button>
+            </form>
+        </div>
+
+        <div class="caja">
+            <h2>Registro de movimientos</h2>
+            <a href="/descargar/" class="btn-descargar">⬇ Descargar CSV</a>
+            <table>
+                <thead>
+                <tr><th>Tipo</th><th>Ticker</th><th>Cantidad</th><th>Precio</th><th>Total</th><th>Fecha</th></tr>
+                </thead>
+                <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td><span class="pill {% if m.tipo == 'COMPRA' %}compra{% else %}venta{% endif %}">{{ m.tipo }}</span></td>
+                    <td class="mono"><strong>{{ m.ticker }}</strong></td>
+                    <td class="mono">{{ m.cantidad }}</td>
+                    <td class="mono">{{ m.precio }} €</td>
+                    <td class="mono">{{ m.total }} €</td>
+                    <td>{{ m.fecha }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ALERTAS -->
+    {% if user.is_authenticated %}
+    <div id="alertas" class="seccion">
+        {% for a in alertas %}
+            {% if a.cumplida %}
+            <div class="aviso-alerta">
+                🔔 <strong>{{ a.ticker }}</strong> alcanzó tu objetivo:
+                {% if a.condicion == 'SUBE' %}subió por encima de{% else %}bajó por debajo de{% endif %}
+                <span class="mono">{{ a.precio_objetivo }} €</span> (actual: <span class="mono">{{ a.precio_actual }} €</span>)
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <div class="caja">
+            <h2>Crear alerta</h2>
+            <form method="post" action="/alerta/crear/">
+                {% csrf_token %}
+                <label>Empresa</label>
+                <div class="buscador-wrap">
+                    <input type="text" id="buscador_alerta" placeholder="Apple, Tesla...">
+                    <div id="sugerencias_alerta"></div>
+                </div>
+                <p>Seleccionado: <strong id="ticker_alerta" class="mono">ninguno</strong> <span id="precio_alerta_info" class="mono"></span></p>
+                <input type="hidden" name="ticker" id="campo_ticker_alerta" required>
+                <label>Avisar cuando</label>
+                <select name="condicion">
+                    <option value="SUBE">Suba por encima de</option>
+                    <option value="BAJA">Baje por debajo de</option>
+                </select>
+                <input type="number" step="any" name="precio_objetivo" placeholder="Precio objetivo (EUR)" required>
+                <br><br>
+                <button type="submit" class="accion">Crear alerta</button>
+            </form>
+        </div>
+
+        <div class="caja">
+            <h2>Mis alertas</h2>
+            <table>
+                <thead>
+                <tr><th>Ticker</th><th>Condición</th><th>Objetivo</th><th>Actual</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for a in alertas %}
+                <tr>
+                    <td class="mono"><strong>{{ a.ticker }}</strong></td>
+                    <td>{% if a.condicion == 'SUBE' %}Sube por encima{% else %}Baja por debajo{% endif %}</td>
+                    <td class="mono">{{ a.precio_objetivo }} €</td>
+                    <td class="mono">{{ a.precio_actual }} €</td>
+                    <td>{% if a.cumplida %}<span class="verde">✓ Cumplida</span>{% else %}<span style="color:var(--tinta-suave)">Esperando</span>{% endif %}</td>
+                    <td><a href="/alerta/borrar/{{ a.id }}/" style="color:var(--rojo);text-decoration:none;font-weight:600;">Borrar</a></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function cambiarPestana(id, boton) {
+            document.querySelectorAll(".seccion").forEach(s => s.classList.remove("activa"));
+            document.querySelectorAll(".pestana").forEach(p => p.classList.remove("activa"));
+            document.getElementById(id).classList.add("activa");
+            boton.classList.add("activa");
+        }
+
+        const buscador = document.getElementById("buscador");
+        const sugerencias = document.getElementById("sugerencias");
+        const seleccionados = document.getElementById("seleccionados");
+        const campoTickers = document.getElementById("campo_tickers");
+        let tickers = campoTickers.value ? campoTickers.value.split(",").filter(t => t) : [];
+        let miGrafica = null;
+
+        const flotante = document.getElementById("flotante");
+        const cacheSpark = {};
+        let sparkChart = null;
+        let hoverTimer = null;
+
+        async function mostrarFlotante(ticker, x, y) {
+            flotante.style.display = "block";
+            flotante.style.left = Math.min(x + 16, window.innerWidth - 256) + "px";
+            flotante.style.top = (y + 16) + "px";
+            document.getElementById("f_ticker").textContent = ticker;
+            document.getElementById("f_precio").textContent = "";
+            document.getElementById("f_cargando").style.display = "block";
+
+            let info = cacheSpark[ticker];
+            if (!info) {
+                try {
+                    const [rp, rh] = await Promise.all([
+                        fetch(`/precio/?ticker=${encodeURIComponent(ticker)}`),
+                        fetch(`/historial/?ticker=${encodeURIComponent(ticker)}`)
+                    ]);
+                    const dp = await rp.json();
+                    const dh = await rh.json();
+                    info = { precio: dp.precio, precios: dh.precios || [] };
+                    cacheSpark[ticker] = info;
+                } catch (e) { info = { precio: null, precios: [] }; }
+            }
+            if (document.getElementById("f_ticker").textContent !== ticker) return;
+            document.getElementById("f_cargando").style.display = "none";
+            document.getElementById("f_precio").textContent = info.precio ? info.precio + " €" : "Sin precio";
+            const canvas = document.getElementById("f_spark");
+            if (sparkChart) sparkChart.destroy();
+            if (info.precios.length > 1) {
+                const sube = info.precios[info.precios.length-1] >= info.precios[0];
+                sparkChart = new Chart(canvas, {
+                    type: "line",
+                    data: { labels: info.precios.map((_,i)=>i),
+                        datasets: [{ data: info.precios, borderColor: sube ? "#0ea968" : "#e02d52",
+                            borderWidth: 1.5, pointRadius: 0, fill: false, tension: .3 }] },
+                    options: { responsive: false, plugins: { legend: { display: false } },
+                        scales: { x: { display: false }, y: { display: false } } }
+                });
+            }
+        }
+        function ocultarFlotante() {
+            clearTimeout(hoverTimer);
+            flotante.style.display = "none";
+        }
+
+       let periodoActual = "1y";
+
+async function cargarDatosTicker(ticker, periodo) {
+    const r = await fetch(`/historial/?ticker=${encodeURIComponent(ticker)}&periodo=${periodo}`);
+    return await r.json();
+}
+
+const coloresComparar = ["#4f46e5", "#0ea968", "#e02d52", "#f59e0b", "#0891b2", "#9333ea"];
+
+// Calcula la media móvil de N periodos
+function calcularMediaMovil(precios, periodo) {
+    const media = [];
+    for (let i = 0; i < precios.length; i++) {
+        if (i < periodo - 1) {
+            media.push(null);  // no hay suficientes datos aún
+        } else {
+            let suma = 0;
+            for (let j = 0; j < periodo; j++) {
+                suma += precios[i - j];
+            }
+            media.push(+(suma / periodo).toFixed(2));
+        }
+    }
+    return media;
+}
+
+async function mostrarGrafica() {
+    if (tickers.length === 0) { alert("Selecciona al menos una empresa."); return; }
+
+    // Cargar datos de todos los tickers seleccionados, en el periodo actual
+    const datasets = [];
+    let fechasRef = [];
+
+    for (let i = 0; i < tickers.length; i++) {
+        const t = tickers[i];
+        const datos = await cargarDatosTicker(t, periodoActual);
+        if (datos.precios.length === 0) continue;
+        if (datos.fechas.length > fechasRef.length) fechasRef = datos.fechas;
+
+        const color = coloresComparar[i % coloresComparar.length];
+        datasets.push({
+            label: t,
+            data: datos.precios,
+            borderColor: color,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: tickers.length === 1,
+            backgroundColor: "rgba(79,70,229,0.06)",
+            tension: .2,
+        });
+        // Media móvil (solo si hay un único ticker)
+        if (tickers.length === 1) {
+            const mm20 = calcularMediaMovil(datos.precios, 20);
+            datasets.push({
+                label: "Media móvil 20",
+                data: mm20,
+                borderColor: "#f59e0b",
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+                tension: .2,
+                borderDash: [4, 2],
+            });
+        }
+
+        // Añadir líneas de alerta solo si hay un único ticker
+        if (tickers.length === 1) {
+            try {
+                const rA = await fetch(`/alertas-ticker/?ticker=${encodeURIComponent(t)}`);
+                const dA = await rA.json();
+                dA.alertas.forEach(a => {
+                    datasets.push({
+                        label: `Alerta ${a.condicion} ${a.precio}`,
+                        data: datos.fechas.map(() => a.precio),
+                        borderColor: a.condicion === "SUBE" ? "#0ea968" : "#e02d52",
+                        borderWidth: 1.5, borderDash: [6,4], pointRadius: 0, fill: false,
+                    });
+                });
+            } catch (e) {}
+        }
+        // Media móvil (solo si hay un único ticker)
+       
+        // Bandas de Bollinger (solo si hay un único ticker)
+        if (tickers.length === 1) {
+            const bb = await obtenerBollinger(t);
+            if (bb.superior && bb.superior.length > 0) {
+                datasets.push({
+                    label: "Bollinger sup",
+                    data: bb.superior,
+                    borderColor: "#9333ea",
+                    borderWidth: 1,
+                    borderDash: [3, 3],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: .2,
+                });
+                datasets.push({
+                    label: "Bollinger inf",
+                    data: bb.inferior,
+                    borderColor: "#9333ea",
+                    borderWidth: 1,
+                    borderDash: [3, 3],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: .2,
+                });
+            }
+        }
+    }
+
+    if (datasets.length === 0) { alert("No hay datos para mostrar."); return; }
+
+    document.getElementById("grafica_wrap").classList.add("visible");
+    document.getElementById("titulo_grafica").textContent =
+        tickers.length === 1 ? "Evolucion de " + tickers[0] : "Comparativa";
+
+    const canvas = document.getElementById("grafica");
+    if (miGrafica) miGrafica.destroy();
+    miGrafica = new Chart(canvas, {
+        type: "line",
+        data: { labels: fechasRef, datasets: datasets },
+        options: {
+            responsive: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+                legend: { display: true },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        title: (items) => items[0].label,
+                        label: (item) => `${item.dataset.label}: ${item.formattedValue} €`,
+                    }
+                }
+            },
+            scales: { x: { ticks: { maxTicksLimit: 12 } } }
+        }
+    });
+    // Cargar noticias del primer ticker
+    if (tickers.length >= 1) {
+        cargarNoticias(tickers[0]);
+    }
+   // Mostrar RSI y MACD solo si hay un único ticker
+    if (tickers.length === 1) {
+        mostrarRSI(tickers[0]);
+        mostrarMACD(tickers[0]);
+    } else {
+        document.getElementById("rsi_wrap").classList.remove("visible");
+        document.getElementById("macd_wrap").classList.remove("visible");
+    }
+}
+
+// Conectar los botones de periodo
+document.querySelectorAll(".btn-periodo").forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll(".btn-periodo").forEach(b => b.classList.remove("activa"));
+        btn.classList.add("activa");
+        periodoActual = btn.dataset.periodo;
+        mostrarGrafica();  // recargar con el nuevo periodo
+    };
+  });
+        function pintarSeleccionados() {
+            seleccionados.innerHTML = "";
+            tickers.forEach((t, i) => {
+                const span = document.createElement("span");
+                span.className = "etiqueta";
+                const tk = document.createElement("span");
+                tk.className = "tk"; tk.textContent = t;
+                tk.onclick = () => mostrarGrafica();
+                const borrar = document.createElement("button");
+                borrar.type = "button"; borrar.textContent = "×";
+                borrar.onclick = () => { tickers.splice(i, 1); actualizar(); };
+                span.appendChild(tk); span.appendChild(borrar);
+                seleccionados.appendChild(span);
+            });
+        }
+        function actualizar() { campoTickers.value = tickers.join(","); pintarSeleccionados(); }
+
+        function pintarSugerencias(contenedor, datos, alElegir) {
+            contenedor.innerHTML = "";
+            if (datos.resultados.length === 0) { contenedor.style.display = "none"; return; }
+            datos.resultados.forEach(item => {
+                const div = document.createElement("div");
+                div.textContent = `${item.simbolo} — ${item.nombre}`;
+                div.onclick = () => alElegir(item);
+                div.onmouseenter = (e) => {
+                    clearTimeout(hoverTimer);
+                    const rect = div.getBoundingClientRect();
+                    hoverTimer = setTimeout(() => mostrarFlotante(item.simbolo, rect.right, rect.top), 250);
+                };
+                div.onmouseleave = ocultarFlotante;
+                contenedor.appendChild(div);
+            });
+            contenedor.style.display = "block";
+        }
+
+        buscador.addEventListener("input", async () => {
+            const texto = buscador.value.trim();
+            if (texto.length < 1) { sugerencias.style.display = "none"; return; }
+            const r = await fetch(`/buscar/?q=${encodeURIComponent(texto)}`);
+            const datos = await r.json();
+            pintarSugerencias(sugerencias, datos, (item) => {
+                if (!tickers.includes(item.simbolo)) { tickers.push(item.simbolo); actualizar(); }
+                buscador.value = ""; sugerencias.style.display = "none"; ocultarFlotante();
+            });
+        });
+
+        const buscadorCompra = document.getElementById("buscador_compra");
+        const sugerenciasCompra = document.getElementById("sugerencias_compra");
+        const campoTickerCompra = document.getElementById("campo_ticker_compra");
+        const tickerElegido = document.getElementById("ticker_elegido");
+        let precioActualCompra = null;
+
+        if (buscadorCompra) {
+            buscadorCompra.addEventListener("input", async () => {
+                const texto = buscadorCompra.value.trim();
+                if (texto.length < 1) { sugerenciasCompra.style.display = "none"; return; }
+                const r = await fetch(`/buscar/?q=${encodeURIComponent(texto)}`);
+                const datos = await r.json();
+                pintarSugerencias(sugerenciasCompra, datos, async (item) => {
+                    campoTickerCompra.value = item.simbolo;
+                    tickerElegido.textContent = item.simbolo;
+                    buscadorCompra.value = ""; sugerenciasCompra.style.display = "none"; ocultarFlotante();
+                    const rr = await fetch(`/precio/?ticker=${encodeURIComponent(item.simbolo)}`);
+                    const dd = await rr.json();
+                    precioActualCompra = dd.precio;
+                    document.getElementById("precio_info").textContent =
+                        precioActualCompra ? `(actual: ${precioActualCompra} €)` : "(sin precio)";
+                });
+            });
+        }
+
+        function calcularAcciones() {
+            const dinero = parseFloat(document.getElementById("dinero_invertir").value);
+            const resultado = document.getElementById("resultado_calculo");
+            const btnComprar = document.getElementById("btn_comprar");
+            if (!campoTickerCompra.value) { alert("Primero elige una empresa."); return; }
+            if (!precioActualCompra) { alert("No hay precio disponible."); return; }
+            if (!dinero || dinero <= 0) { alert("Introduce una cantidad valida."); return; }
+            const acciones = dinero / precioActualCompra;
+            resultado.style.display = "block";
+            resultado.innerHTML = `Con <strong>${dinero} €</strong> compras <strong class="mono">${acciones.toFixed(4)}</strong> acciones de <strong>${campoTickerCompra.value}</strong> a ${precioActualCompra} € c/u.`;
+            document.getElementById("campo_cantidad").value = acciones.toFixed(4);
+            document.getElementById("campo_precio").value = precioActualCompra;
+            btnComprar.style.display = "inline-block";
+        }
+
+        const buscadorVenta = document.getElementById("buscador_venta");
+        const sugerenciasVenta = document.getElementById("sugerencias_venta");
+        const campoTickerVenta = document.getElementById("campo_ticker_venta");
+        const tickerVenta = document.getElementById("ticker_venta");
+
+        if (buscadorVenta) {
+            buscadorVenta.addEventListener("input", async () => {
+                const texto = buscadorVenta.value.trim();
+                if (texto.length < 1) { sugerenciasVenta.style.display = "none"; return; }
+                const r = await fetch(`/buscar/?q=${encodeURIComponent(texto)}`);
+                const datos = await r.json();
+                pintarSugerencias(sugerenciasVenta, datos, async (item) => {
+                    campoTickerVenta.value = item.simbolo;
+                    tickerVenta.textContent = item.simbolo;
+                    buscadorVenta.value = ""; sugerenciasVenta.style.display = "none"; ocultarFlotante();
+                    const rr = await fetch(`/precio/?ticker=${encodeURIComponent(item.simbolo)}`);
+                    const dd = await rr.json();
+                    if (dd.precio) {
+                        document.getElementById("campo_precio_venta").value = dd.precio;
+                        document.getElementById("precio_venta_info").textContent = `(actual: ${dd.precio} €)`;
+                    }
+                });
+            });
+        }
+
+        const buscadorAlerta = document.getElementById("buscador_alerta");
+        const sugerenciasAlerta = document.getElementById("sugerencias_alerta");
+        const campoTickerAlerta = document.getElementById("campo_ticker_alerta");
+        const tickerAlerta = document.getElementById("ticker_alerta");
+
+        if (buscadorAlerta) {
+            buscadorAlerta.addEventListener("input", async () => {
+                const texto = buscadorAlerta.value.trim();
+                if (texto.length < 1) { sugerenciasAlerta.style.display = "none"; return; }
+                const r = await fetch(`/buscar/?q=${encodeURIComponent(texto)}`);
+                const datos = await r.json();
+                pintarSugerencias(sugerenciasAlerta, datos, async (item) => {
+                    campoTickerAlerta.value = item.simbolo;
+                    tickerAlerta.textContent = item.simbolo;
+                    buscadorAlerta.value = ""; sugerenciasAlerta.style.display = "none"; ocultarFlotante();
+                    const rr = await fetch(`/precio/?ticker=${encodeURIComponent(item.simbolo)}`);
+                    const dd = await rr.json();
+                    if (dd.precio) document.getElementById("precio_alerta_info").textContent = `(actual: ${dd.precio} €)`;
+                });
+            });
+        }
+     // ── Gráfico de tarta de la cartera ──
+(function dibujarTarta() {
+    const canvas = document.getElementById("grafica_tarta");
+    if (!canvas) return;
+
+    // Recoger los datos de las posiciones desde la tabla
+    const posiciones = [
+        {% for p in posiciones %}
+        { ticker: "{{ p.ticker }}", valor: {{ p.valor_actual }} },
+        {% endfor %}
+    ];
+
+    if (posiciones.length === 0) {
+        canvas.style.display = "none";
+        return;
+    }
+
+    const colores = ["#4f46e5", "#0ea968", "#e02d52", "#f59e0b", "#0891b2", "#9333ea", "#db2777", "#65a30d"];
+
+    new Chart(canvas, {
+        type: "doughnut",
+        data: {
+            labels: posiciones.map(p => p.ticker),
+            datasets: [{
+                data: posiciones.map(p => p.valor),
+                backgroundColor: posiciones.map((_, i) => colores[i % colores.length]),
+                borderWidth: 2,
+                borderColor: "#ffffff",
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: {
+                legend: { position: "bottom" },
+                tooltip: {
+                    callbacks: {
+                        label: (item) => `${item.label}: ${item.parsed.toFixed(2)} €`
+                    }
+                }
+            }
+        }
+       });
+      })();
+     // ── Modo oscuro / claro ──
+     function cambiarTema() {
+     document.body.classList.toggle("oscuro");
+     const btn = document.getElementById("btn_tema");
+     btn.textContent = document.body.classList.contains("oscuro") ? "☀️" : "🌙";
+      }
+      async function cargarNoticias(ticker) {
+    const caja = document.getElementById("caja_noticias");
+    const lista = document.getElementById("lista_noticias");
+    lista.innerHTML = "<p style='color:var(--tinta-suave);'>Cargando noticias...</p>";
+    caja.style.display = "block";
+
+    try {
+        const r = await fetch(`/noticias/?ticker=${encodeURIComponent(ticker)}`);
+        const datos = await r.json();
+
+        if (datos.noticias.length === 0) {
+            lista.innerHTML = "<p style='color:var(--tinta-suave);'>No hay noticias para " + ticker + ".</p>";
+            return;
+        }
+
+        lista.innerHTML = "";
+        datos.noticias.forEach(n => {
+            const item = document.createElement("a");
+            item.href = n.enlace;
+            item.target = "_blank";
+            item.style.cssText = "display:block;padding:12px;border-bottom:1px solid var(--borde);text-decoration:none;color:var(--tinta);transition:background .15s;";
+            item.onmouseover = () => item.style.background = "var(--acento-claro)";
+            item.onmouseout = () => item.style.background = "transparent";
+            item.innerHTML = `<div style="font-weight:600;font-size:14px;margin-bottom:4px;">${n.titulo}</div>` +
+                             `<div style="font-size:12px;color:var(--tinta-suave);">${n.editor}</div>`;
+            lista.appendChild(item);
+        });
+    } catch (e) {
+        lista.innerHTML = "<p style='color:var(--rojo);'>Error al cargar noticias.</p>";
+    }
+}
+ let graficaRsi = null;
+
+async function mostrarRSI(ticker) {
+    const r = await fetch(`/rsi/?ticker=${encodeURIComponent(ticker)}&periodo=${periodoActual}`);
+    const datos = await r.json();
+    if (!datos.rsi || datos.rsi.length === 0) return;
+
+    document.getElementById("rsi_wrap").classList.add("visible");
+    const canvas = document.getElementById("grafica_rsi");
+    if (graficaRsi) graficaRsi.destroy();
+
+    graficaRsi = new Chart(canvas, {
+        type: "line",
+        data: {
+            labels: datos.fechas,
+            datasets: [
+                {
+                    label: "RSI",
+                    data: datos.rsi,
+                    borderColor: "#9333ea",
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: .2,
+                },
+                {
+                    label: "Sobrecompra (70)",
+                    data: datos.fechas.map(() => 70),
+                    borderColor: "#e02d52",
+                    borderWidth: 1,
+                    borderDash: [4, 4],
+                    pointRadius: 0,
+                    fill: false,
+                },
+                {
+                    label: "Sobreventa (30)",
+                    data: datos.fechas.map(() => 30),
+                    borderColor: "#0ea968",
+                    borderWidth: 1,
+                    borderDash: [4, 4],
+                    pointRadius: 0,
+                    fill: false,
+                }
+            ]
+        },
+        options: {
+            responsive: false,
+            plugins: { legend: { display: true } },
+            scales: {
+                x: { ticks: { maxTicksLimit: 12 } },
+                y: { min: 0, max: 100, ticks: { stepSize: 20 } }
+            }
+        }
+    });
+}
+      let graficaMacd = null;
+
+async function mostrarMACD(ticker) {
+    const r = await fetch(`/macd/?ticker=${encodeURIComponent(ticker)}&periodo=${periodoActual}`);
+    const datos = await r.json();
+    if (!datos.macd || datos.macd.length === 0) return;
+
+    document.getElementById("macd_wrap").classList.add("visible");
+    const canvas = document.getElementById("grafica_macd");
+    if (graficaMacd) graficaMacd.destroy();
+
+    // Colores del histograma: verde si positivo, rojo si negativo
+    const coloresHist = datos.histograma.map(h => {
+        if (h === null) return "rgba(0,0,0,0)";
+        return h >= 0 ? "rgba(14,169,104,0.5)" : "rgba(224,45,82,0.5)";
+    });
+
+    graficaMacd = new Chart(canvas, {
+        data: {
+            labels: datos.fechas,
+            datasets: [
+                {
+                    type: "bar",
+                    label: "Histograma",
+                    data: datos.histograma,
+                    backgroundColor: coloresHist,
+                    borderWidth: 0,
+                },
+                {
+                    type: "line",
+                    label: "MACD",
+                    data: datos.macd,
+                    borderColor: "#4f46e5",
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: .2,
+                },
+                {
+                    type: "line",
+                    label: "Señal",
+                    data: datos.senal,
+                    borderColor: "#f59e0b",
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: .2,
+                }
+            ]
+        },
+        options: {
+            responsive: false,
+            plugins: { legend: { display: true } },
+            scales: { x: { ticks: { maxTicksLimit: 12 } } }
+        }
+    });
+}
+      async function obtenerBollinger(ticker) {
+    try {
+        const r = await fetch(`/bollinger/?ticker=${encodeURIComponent(ticker)}&periodo=${periodoActual}`);
+        return await r.json();
+    } catch (e) {
+        return { media: [], superior: [], inferior: [] };
+    }
+}
+        pintarSeleccionados();
+    </script>
+</body>
+</html>

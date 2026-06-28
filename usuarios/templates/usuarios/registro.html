@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; max-width: 400px; }
+        input { display: block; width: 100%; padding: 8px; margin: 8px 0; }
+        button { padding: 10px 20px; cursor: pointer; }
+        .ayuda { font-size: 0.85em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>📝 Crear cuenta</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        <button type="submit">Registrarme</button>
+    </form>
+
+    <p>¿Ya tienes cuenta? <a href="/usuarios/login/">Inicia sesión</a></p>
+</body>
+</html>
